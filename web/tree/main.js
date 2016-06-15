@@ -50,6 +50,9 @@ module.exports = {
       obj
     ));
   },
+  registerScriptElement: function(elem) {
+    return TreePersistence.waspElem(elem);
+  },
   addVirtual: function(components) {
     return TreeDispatcher.handleViewAction({
       type: "addVirtual",
@@ -61,7 +64,13 @@ module.exports = {
       pax: pax,
       sup: sup,
       txt: txt
-    }, "talk-comment");
+    }, "talk-comment", "talk", (function(_this) {
+      return function(err, res) {
+        if (err == null) {
+          return _this.clearData();
+        }
+      };
+    })(this));
   },
   setPlanInfo: function(arg) {
     var loc, who;
@@ -359,7 +368,7 @@ extras = {
     render: function() {
       return img({
         src: this.props.image
-      }, "");
+      });
     }
   }),
   preview: recl({
@@ -563,7 +572,7 @@ module.exports = recl({
 
 
 },{}],5:[function(require,module,exports){
-var Comment, Ship, TreeActions, a, clas, code, div, form, h2, img, input, load, p, query, reactify, recl, ref, rele, textarea, util;
+var Comment, DEFER_USER, Ship, TreeActions, a, clas, code, div, form, h2, img, input, load, p, query, reactify, recl, ref, rele, textarea, util;
 
 clas = require('classnames');
 
@@ -584,6 +593,8 @@ recl = React.createClass;
 rele = React.createElement;
 
 ref = React.DOM, div = ref.div, p = ref.p, h2 = ref.h2, img = ref.img, a = ref.a, form = ref.form, textarea = ref.textarea, input = ref.input, code = ref.code;
+
+DEFER_USER = false;
 
 Comment = function(arg) {
   var body, loading, ref1, time, user;
@@ -614,15 +625,23 @@ module.exports = query({
     };
   },
   componentDidMount: function() {
-    return urb.init((function(_this) {
-      return function() {
-        return _this.setState({
-          user: urb.user
-        });
-      };
-    })(this));
+    if (!DEFER_USER) {
+      return urb.init((function(_this) {
+        return function() {
+          return _this.setState({
+            user: urb.user
+          });
+        };
+      })(this));
+    }
   },
   componentDidUpdate: function(_props) {
+    var ref1;
+    if (urb.user && !this.state.user) {
+      this.setState({
+        user: (ref1 = urb.user) != null ? ref1 : ""
+      });
+    }
     if (this.props.comt.length > _props.comt.length) {
       return this.setState({
         loading: null
@@ -1972,11 +1991,13 @@ module.exports = _.extend(reactify, {
 
 
 },{"../stores/TreeStore.coffee":27,"./LoadComponent.coffee":12}],18:[function(require,module,exports){
-var appendNext, recl, rele, waitingScripts;
+var TreeActions, appendNext, recl, rele, waitingScripts;
 
 recl = React.createClass;
 
 rele = React.createElement;
+
+TreeActions = require('../actions/TreeActions.coffee');
 
 waitingScripts = null;
 
@@ -1997,7 +2018,7 @@ module.exports = recl({
     var s;
     s = document.createElement('script');
     _.assign(s, this.props);
-    urb.waspElem(s);
+    TreeActions.registerScriptElement(s);
     s.onload = appendNext;
     this.js = s;
     if (waitingScripts != null) {
@@ -2018,7 +2039,7 @@ module.exports = recl({
 });
 
 
-},{}],19:[function(require,module,exports){
+},{"../actions/TreeActions.coffee":1}],19:[function(require,module,exports){
 var a, div, input, query, reactify, recl, ref,
   slice = [].slice;
 
@@ -2518,19 +2539,21 @@ module.exports = {
     return $.get(url, {}, function(data, status, xhr) {
       var dep;
       delete pending[url];
-      dep = urb.getXHRWasp(xhr);
-      urb.sources[dep] = url;
-      waspWait.push(dep);
-      if (_.isEmpty(pending)) {
-        waspWait.map(urb.waspData);
-        waspWait = [];
+      if (urb.wasp != null) {
+        dep = urb.getXHRWasp(xhr);
+        urb.sources[dep] = url;
+        waspWait.push(dep);
+        if (_.isEmpty(pending)) {
+          waspWait.map(urb.waspData);
+          waspWait = [];
+        }
       }
       if (cb) {
         return cb(null, data);
       }
     });
   },
-  put: function(data, mark, appl) {
+  put: function(data, mark, appl, cb) {
     if (appl == null) {
       appl = /[a-z]*/.exec(mark)[0];
     }
@@ -2538,8 +2561,13 @@ module.exports = {
       return urb.send(data, {
         mark: mark,
         appl: appl
-      });
+      }, cb);
     });
+  },
+  waspElem: function(a) {
+    if (urb.wasp != null) {
+      return urb.waspElem(a);
+    }
   },
   encode: function(obj) {
     var _encode, delim;
@@ -2862,8 +2890,10 @@ TreeStore.dispatchToken = MessageDispatcher.register(function(p) {
   var a;
   a = p.action;
   if (TreeStore[a.type]) {
-    TreeStore[a.type](a);
-    return TreeStore.emitChange();
+    return setTimeout(function() {
+      TreeStore[a.type](a);
+      return TreeStore.emitChange();
+    }, 0);
   }
 });
 
