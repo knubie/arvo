@@ -290,7 +290,7 @@ module.exports = function(queries, Child, load) {
 
 
 },{"../actions/TreeActions.coffee":1,"../stores/TreeStore.coffee":27,"../utils/util.coffee":29,"./LoadComponent.coffee":12}],3:[function(require,module,exports){
-var Comments, TreeActions, TreeStore, a, clas, div, extras, h1, h3, img, input, load, p, query, reactify, recl, ref, rele, util;
+var Comments, TreeActions, TreeStore, a, clas, div, extras, h1, h3, img, input, load, name, p, query, reactify, recl, ref, rele, util;
 
 clas = require('classnames');
 
@@ -308,6 +308,12 @@ Comments = require('./CommentsComponent.coffee');
 
 util = require('../utils/util.coffee');
 
+name = function(displayName, component) {
+  return _.extend(component, {
+    displayName: displayName
+  });
+};
+
 recl = React.createClass;
 
 rele = React.createElement;
@@ -315,77 +321,66 @@ rele = React.createElement;
 ref = React.DOM, div = ref.div, h1 = ref.h1, h3 = ref.h3, p = ref.p, img = ref.img, a = ref.a, input = ref.input;
 
 extras = {
-  spam: recl({
-    displayName: "Spam",
-    render: function() {
-      if (document.location.hostname !== 'urbit.org') {
-        return div({});
+  spam: name("Spam", function() {
+    if (document.location.hostname !== 'urbit.org') {
+      return div({});
+    }
+    return div({
+      className: 'spam'
+    }, a({
+      href: "http://urbit.org#sign-up"
+    }, "Sign up"), " for our newsletter.");
+  }),
+  logo: name("Logo", function(arg) {
+    var color, src;
+    color = arg.color;
+    if (color === "white" || color === "black") {
+      src = "//media.urbit.org/logo/logo-" + color + "-100x100.png";
+    }
+    return a({
+      href: "http://urbit.org",
+      style: {
+        border: "none"
       }
-      return div({
-        className: 'spam'
-      }, a({
-        href: "http://urbit.org#sign-up"
-      }, "Sign up"), " for our newsletter.");
-    }
+    }, img({
+      src: src,
+      className: "logo first"
+    }));
   }),
-  logo: recl({
-    displayName: "Logo",
-    render: function() {
-      var color, src;
-      color = this.props.color;
-      if (color === "white" || color === "black") {
-        src = "//media.urbit.org/logo/logo-" + color + "-100x100.png";
-      }
-      return a({
-        href: "http://urbit.org",
-        style: {
-          border: "none"
-        }
-      }, img({
-        src: src,
-        className: "logo first"
-      }));
-    }
+  date: name("Date", function(arg) {
+    var date;
+    date = arg.date;
+    return div({
+      className: 'date'
+    }, date);
   }),
-  date: recl({
-    displayName: "Date",
-    render: function() {
-      return div({
-        className: 'date'
-      }, this.props.date);
-    }
+  title: name("Title", function(arg) {
+    var title;
+    title = arg.title;
+    return h1({
+      className: 'title'
+    }, title);
   }),
-  title: recl({
-    displayName: "Title",
-    render: function() {
-      return h1({
-        className: 'title'
-      }, this.props.title);
-    }
+  image: name("Image", function(arg) {
+    var image;
+    image = arg.image;
+    return img({
+      src: image
+    });
   }),
-  image: recl({
-    displayName: "Image",
-    render: function() {
-      return img({
-        src: this.props.image
-      });
-    }
+  preview: name("Preview", function(arg) {
+    var preview;
+    preview = arg.preview;
+    return p({
+      className: 'preview'
+    }, preview);
   }),
-  preview: recl({
-    displayName: "Preview",
-    render: function() {
-      return p({
-        className: 'preview'
-      }, this.props.preview);
-    }
-  }),
-  author: recl({
-    displayName: "Author",
-    render: function() {
-      return h3({
-        className: 'author'
-      }, this.props.author);
-    }
+  author: name("Author", function(arg) {
+    var author;
+    author = arg.author;
+    return h3({
+      className: 'author'
+    }, author);
   }),
   next: query({
     path: 't',
@@ -394,61 +389,56 @@ extras = {
       head: 'r',
       meta: 'j'
     }
-  }, recl({
-    displayName: "Next",
-    render: function() {
-      var curr, index, keys, next, ref1;
-      curr = this.props.kids[this.props.curr];
-      if (curr != null ? (ref1 = curr.meta) != null ? ref1.next : void 0 : void 0) {
-        keys = util.getKeys(this.props.kids);
-        if (keys.length > 1) {
-          index = keys.indexOf(this.props.curr);
-          next = index + 1;
-          if (next === keys.length) {
-            next = 0;
-          }
-          next = keys[next];
-          next = this.props.kids[next];
-          if (next) {
-            return div({
-              className: "link-next"
-            }, a({
-              href: this.props.path + "/" + next.name
-            }, "Next: " + next.meta.title));
-          }
+  }, name("Next", function(arg) {
+    var curr, index, keys, kids, next, path, ref1, ref2;
+    curr = arg.curr, path = arg.path, kids = arg.kids;
+    if ((ref1 = kids[curr]) != null ? (ref2 = ref1.meta) != null ? ref2.next : void 0 : void 0) {
+      keys = util.getKeys(kids);
+      if (keys.length > 1) {
+        index = keys.indexOf(curr);
+        next = index + 1;
+        if (next === keys.length) {
+          next = 0;
+        }
+        next = keys[next];
+        next = kids[next];
+        if (next) {
+          return div({
+            className: "link-next"
+          }, a({
+            href: path + "/" + next.name
+          }, "Next: " + next.meta.title));
         }
       }
-      return div({}, "");
     }
+    return div({}, "");
   })),
   comments: Comments,
-  footer: recl({
-    displayName: "Footer",
-    render: function() {
-      var containerClas, footerClas;
-      containerClas = clas({
-        footer: true,
-        container: this.props.container === 'false'
-      });
-      footerClas = clas({
-        'col-md-12': this.props.container === 'false'
-      });
-      return div({
-        className: containerClas,
-        key: 'footer-container'
+  footer: name("Footer", function(arg) {
+    var container, containerClas, footerClas;
+    container = arg.container;
+    containerClas = clas({
+      footer: true,
+      container: container === 'false'
+    });
+    footerClas = clas({
+      'col-md-12': container === 'false'
+    });
+    return div({
+      className: containerClas,
+      key: 'footer-container'
+    }, [
+      div({
+        className: footerClas,
+        key: 'footer-inner'
       }, [
-        div({
-          className: footerClas,
-          key: 'footer-inner'
-        }, [
-          "This page was made by Urbit. Feedback: ", a({
-            href: "mailto:urbit@urbit.org"
-          }, "urbit@urbit.org"), " ", a({
-            href: "https://twitter.com/urbit_"
-          }, "@urbit_")
-        ])
-      ]);
-    }
+        "This page was made by Urbit. Feedback: ", a({
+          href: "mailto:urbit@urbit.org"
+        }, "urbit@urbit.org"), " ", a({
+          href: "https://twitter.com/urbit_"
+        }, "@urbit_")
+      ])
+    ]);
   })
 };
 
@@ -594,7 +584,7 @@ rele = React.createElement;
 
 ref = React.DOM, div = ref.div, p = ref.p, h2 = ref.h2, img = ref.img, a = ref.a, form = ref.form, textarea = ref.textarea, input = ref.input, code = ref.code;
 
-DEFER_USER = false;
+DEFER_USER = true;
 
 Comment = function(arg) {
   var body, loading, ref1, time, user;

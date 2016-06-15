@@ -18,8 +18,9 @@ Persistence = _persistence({
       });
     },
     listenStation: function(station, date) {
+      var now;
       if (!date) {
-        date = window.urb.util.toDate(new Date());
+        date = window.urb.util.toDate((now = new Date(), now.setSeconds(0), now.setMilliseconds(0), new Date(now - 24 * 3600 * 1000)));
       }
       return Persistence.listenStation(station, date);
     },
@@ -872,8 +873,6 @@ module.exports = recl({
           _clas = clas({
             open: this.state.open === station,
             closed: !(this.state.open === station),
-            'col-md-4': true,
-            'col-md-offset-6': true,
             menu: true,
             'depth-2': true
           });
@@ -942,8 +941,6 @@ module.exports = recl({
     _clas = clas({
       open: this.props.open === true,
       closed: this.props.open !== true,
-      'col-md-4': true,
-      'col-md-offset-2': true,
       menu: true,
       'depth-1': true
     });
@@ -1944,11 +1941,16 @@ module.exports = util = {
   },
   mainStations: ["court", "floor", "porch"],
   mainStationPath: function(user) {
-    return "~" + user + "/" + (util.mainStation(user));
+    if (user) {
+      return "~" + user + "/" + (util.mainStation(user));
+    }
   },
   mainStation: function(user) {
     if (!user) {
       user = window.urb.user;
+    }
+    if (!user) {
+      return;
     }
     switch (user.length) {
       case 3:
