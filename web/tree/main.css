@@ -221,9 +221,11 @@ div.logo.inverse:before {
       border: 0;
       text-transform: none; }
 
+.ctrl.navbar {
+  max-width: none; }
+
 .ctrl.navbar.open,
 .ctrl.navbar:hover {
-  max-width: none;
   min-width: none; }
 
 @media (max-width: 991px) {
