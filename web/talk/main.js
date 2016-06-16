@@ -1088,10 +1088,12 @@ module.exports = recl({
       }), 0);
       return;
     }
-    if (this.state.audi.length === 0 && $('#audience').text().trim().length > 0) {
-      audi = this._setAudi() ? this._setAudi() : this.state.ludi;
-    } else {
+    if (!(this.state.audi.length === 0 && $('#audience').text().trim().length > 0)) {
       audi = this.state.audi;
+    } else if (this.props['audience-lock'] != null) {
+      audi = ["~" + window.urb.ship + "/" + this.props.station];
+    } else {
+      audi = this._setAudi() || this.state.ludi;
     }
     audi = this.addCC(audi);
     txt = this.$message.text().trim().replace(/\xa0/g, ' ');
