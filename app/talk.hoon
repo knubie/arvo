@@ -1472,6 +1472,7 @@
   ++  ra-conduct                                        ::  thought to partner
     |=  {pub/? her/ship tay/partner tip/thought}
     ^+  +>
+    =.  q.tip  (~(del by q.tip) [& our.hid %home])      :: XX proper bcc
     ::  ~&  [%ra-conduct pub her tay]
     ?-  -.tay
       $&  ?:  pub
