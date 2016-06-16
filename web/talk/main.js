@@ -1090,10 +1090,11 @@ module.exports = recl({
     }
     if (!(this.state.audi.length === 0 && $('#audience').text().trim().length > 0)) {
       audi = this.state.audi;
-    } else if (this.props['audience-lock'] != null) {
-      audi = ["~" + window.urb.ship + "/" + this.props.station];
     } else {
       audi = this._setAudi() || this.state.ludi;
+    }
+    if (this.props['audience-lock'] != null) {
+      audi = _.union(audi, ["~" + window.urb.ship + "/" + this.props.station]);
     }
     audi = this.addCC(audi);
     txt = this.$message.text().trim().replace(/\xa0/g, ' ');
